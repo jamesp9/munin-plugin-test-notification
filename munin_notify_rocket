@@ -1,0 +1,37 @@
+#!/bin/bash
+
+WEBHOOK_URL="http://172.17.0.3:3000/hooks/KX5jLvSAPkrNF3iSx/HJxhtnauw6RWgHnDNA3YhTo5n4d9ZnxzeH9CmoMzHMAAEtCW"
+LOG_FILE="/tmp/munin_notify_rocket.log"
+ICON_EMOJI=":robot:"
+
+GROUP="$1"
+HOST="$2"
+CATEGORY="$3"
+GRAPH_TITLE="$4"
+SERVICE_STATE="$5"
+
+INPUT=$(cat | xargs)
+
+echo "$(date)" > ${LOG_FILE}
+echo "GROUP: ${GROUP}" >> ${LOG_FILE}
+echo "HOST: ${HOST}" >> ${LOG_FILE}
+echo "CATEGORY: ${CATEGORY}" >> ${LOG_FILE}
+echo "GRAPH_TITLE: ${GRAPH_TITLE}" >> ${LOG_FILE}
+echo "SERVICE_STATE: ${SERVICE_STATE}" >> ${LOG_FILE}
+echo "INPUT: ${INPUT}" >> ${LOG_FILE}
+
+if [ "${SERVICESTATE}" = "CRITICAL" ]
+then
+    COLOR="danger"
+elif [ "${SERVICESTATE}" = "WARNING" ]
+then
+    COLOR="warning"
+elif [ "${SERVICESTATE}" = "ok" ]
+then
+    COLOR="good"
+fi
+
+PAYLOAD="{\"icon_emoji\":\":robot:\",\"text\":\"${CATEGORY}: ${GRAPH_TITLE}\",\"attachments\":[{\"title\":\"Munin: ${SERVICE_STATE}\",\"title_link\":\"http://localhost/munin/problems.html\",\"text\":\"${INPUT}\",\"color\":\"${COLOR}\"}]}"
+
+echo "PAYLOAD: ${PAYLOAD}" >> ${LOG_FILE}
+curl -sX POST -o /dev/null --data "payload=${PAYLOAD}" ${WEBHOOK_URL} 2>&1
